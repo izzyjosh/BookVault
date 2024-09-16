@@ -6,12 +6,10 @@ run-name: Test latest push and pull request
 on:
   push:
     branches:
-      - main
       - dev
   
   pull-request:
     branches:
-      - main
       - dev
       - 'feature/**'
 
@@ -116,3 +114,25 @@ jobs:
         run: |
           alemabic revision --autogenerate -m "create tables for initial migration"
           alembic upgrade head
+
+  auto-merge:
+    name: Merge dev branch to main
+    needs: [test, build]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: action/checkout@v4
+
+      - name: Merge dev into main
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout dev
+          git pull origin dev
+
+          git checkout main
+          git pull origin main
+          git merge --no-ff dev
+          git push origin main
