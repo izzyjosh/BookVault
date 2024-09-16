@@ -88,13 +88,13 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test
           POSTGRES_HOST: localhost
-          options: >-
-            --health-cmd pg_db is ready
-            --health-interval 15s
-            --health-timeout 5s
-            --health-retries 5
-          ports:
-            - 5432:5432
+        options: >-
+          --health-cmd pg_db is ready
+          --health-interval 15s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
       - name: Checkout code
