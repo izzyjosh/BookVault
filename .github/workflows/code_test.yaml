@@ -82,7 +82,7 @@ jobs:
 
     services:
       postgres:
-        image: postres: latest
+        image: postgres:latest
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
