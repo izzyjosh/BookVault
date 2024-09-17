@@ -116,10 +116,10 @@ jobs:
           alembic upgrade head
 
   auto-merge:
-    if: github.ref == "refs/heads/dev"
     name: Merge dev branch to main
     needs: [test, build]
     runs-on: ubuntu-latest
+    if: github.ref == "refs/heads/dev"
 
     steps:
       - name: Checkout repo
