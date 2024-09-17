@@ -135,4 +135,4 @@ jobs:
           git checkout main
           git pull origin main
           git merge --no-ff dev
-          git push origin main
+          git push
