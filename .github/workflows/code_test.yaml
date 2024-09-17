@@ -132,7 +132,7 @@ jobs:
           git checkout dev
           git pull origin dev
 
-          git checkout main
+          git checkout origin main
           git pull origin main
           git merge --no-ff dev
           git push
