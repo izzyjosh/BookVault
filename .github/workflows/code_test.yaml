@@ -40,7 +40,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_db is ready
+          --health-cmd pg_isready
           --health-interval 15s
           --health-timeout 5s
           --health-retries 5
@@ -89,7 +89,7 @@ jobs:
           POSTGRES_DB: test
           POSTGRES_HOST: localhost
         options: >-
-          --health-cmd pg_db is ready
+          --health-cmd pg_isready
           --health-interval 15s
           --health-timeout 5s
           --health-retries 5
