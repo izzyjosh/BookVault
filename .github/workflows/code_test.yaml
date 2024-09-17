@@ -119,8 +119,12 @@ jobs:
     needs: [test, build]
     runs-on: ubuntu-latest
     if: ${{ github.ref}} == "refs/heads/dev"
+    permissions:
+      contents: write
 
     steps:
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
       - name: Checkout repo
         uses: actions/checkout@v4
 
