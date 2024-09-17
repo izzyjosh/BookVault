@@ -119,7 +119,7 @@ jobs:
     name: Merge dev branch to main
     needs: [test, build]
     runs-on: ubuntu-latest
-    if: github.ref == "refs/heads/dev"
+    if: ${{ github.ref}} == "refs/heads/dev"
 
     steps:
       - name: Checkout repo
