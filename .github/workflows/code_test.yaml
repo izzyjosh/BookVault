@@ -123,8 +123,6 @@ jobs:
       contents: write
 
     steps:
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -142,3 +140,6 @@ jobs:
           git pull origin main
           git merge --no-ff dev --allow-unrelated-histories
           git push
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
