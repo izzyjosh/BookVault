@@ -112,7 +112,7 @@ jobs:
 
       - name: Run build
         run: |
-          alemabic revision --autogenerate -m "create tables for initial migration"
+          alembic revision --autogenerate -m "create tables for initial migration"
           alembic upgrade head
 
   auto-merge:
