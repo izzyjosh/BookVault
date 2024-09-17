@@ -136,5 +136,5 @@ jobs:
 
           git checkout main
           git pull origin main
-          git merge --no-ff dev
+          git merge --no-ff dev --allow-unrelated-histories
           git push
