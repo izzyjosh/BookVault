@@ -74,7 +74,7 @@ jobs:
       SERVER_PORT: ${{ secrets.SERVER_PORT }}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      DATABASE_URL: "postgresql://izzyjosh:cand92b1bd@localhost:5432/bookvault"
+      DATABASE_URL: "postgresql://postgres.hdomcsrfnphcfggkyjxe:r66mxyBS!ejMXA-@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
       ALGORITHM: ${{ secrets.ALGORITHM }}
       CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
       CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
