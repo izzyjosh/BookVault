@@ -115,33 +115,3 @@ jobs:
           echo "DATABASE_URL is $DATABASE_URL"
           alembic revision --autogenerate -m "create tables"
           alembic upgrade head
-
-  auto-merge:
-    name: Merge dev branch to main
-    needs: [test, build]
-    runs-on: ubuntu-latest
-    if: ${{ github.ref}} == "refs/heads/dev"
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Merge dev into main
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          git fetch origin
-
-          git checkout dev
-          git pull origin dev
-
-          git checkout main
-          git pull origin main
-          git merge --no-ff dev --allow-unrelated-histories
-          git push
-
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
