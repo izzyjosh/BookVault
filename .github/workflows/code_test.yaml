@@ -112,6 +112,7 @@ jobs:
 
       - name: Run build
         run: |
+          echo "DATABASE_URL is $DATABASE_URL"
           alembic revision --autogenerate -m "create tables"
           alembic upgrade head
 
