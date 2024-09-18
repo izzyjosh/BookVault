@@ -74,7 +74,7 @@ jobs:
       SERVER_PORT: ${{ secrets.SERVER_PORT }}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      DATABASR_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_URL: "postgresql://postgres.hdomcsrfnphcfggkyjxe:r66mxyBS!ejMXA-@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
       ALGORITHM: ${{ secrets.ALGORITHM }}
       CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
       CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
@@ -112,7 +112,9 @@ jobs:
 
       - name: Run build
         run: |
-          echo "build complete"
+          echo "DATABASE_URL is $DATABASE_URL"
+          alembic revision --autogenerate -m "create tables"
+          alembic upgrade head
 
   auto-merge:
     name: Merge dev branch to main
