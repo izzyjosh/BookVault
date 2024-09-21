@@ -29,7 +29,7 @@ This Library Management System is designed to automate and streamline the operat
   - [ ] Return Books
   - [ ] Due Date Management
   - [ ] Renewal
-  - [ ] Late Fee Calculation
+  - [ ] Late Fee Calculations
 
 - [ ] **Reservation System**
   - [ ] Book Reservation (Reserve books currently checked out)
