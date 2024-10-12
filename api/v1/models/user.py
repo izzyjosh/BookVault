@@ -27,7 +27,7 @@ class User(AbstractBaseModel):
     password: Mapped[str] = mapped_column(String(1024))
     bio: Mapped[Optional[str]] = mapped_column(String(1024))
     role: Mapped[str] = mapped_column(SQLAlchemyEnum(Role), default=Role.member)
-    last_login: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     is_active: Mapped[bool] = mapped_column(Boolean(), default=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), server_onupdate=func.now()

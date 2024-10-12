@@ -1,11 +1,13 @@
 import os
 from fastapi import HTTPException, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
+from datetime import datetime, timezone, timedelta
 import jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from api.v1.schemas.user import UserCreateSchema
+from api.v1.schemas.user import UserCreateSchema, UserResponseSchema
 from api.v1.models.user import User
 from api.v1.models.access_token import AccessToken
 
@@ -15,9 +17,9 @@ load_dotenv()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
 hash_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-SECRET_KET = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY")
 ALGORITHM = os.environ.get("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTE = os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTE")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 
 class UserService:
@@ -30,13 +32,13 @@ class UserService:
 
     def generate_access_token(self, db: Session, user: User):
         payload = {
-            "id": user.id,
+            "id": str(user.id),
             "email": user.email,
             "username": user.username,
         }
 
         expire = datetime.now(timezone.utc) + timedelta(
-            minutes=ACCESS_TOKEN_EXPIRE_MINUTE
+            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
         payload.update({"exp": expire})
@@ -47,7 +49,7 @@ class UserService:
         db.commit()
         db.refresh(access_token)
 
-        return access_token
+        return {"token": token, "expiry_time": expire}
 
     def user_exist(self, db: Session, email: str, username: str):
         check_user_email = db.query(User).filter(User.email == email).first()
@@ -75,14 +77,21 @@ class UserService:
         # Password hashing
 
         hashed_password = self.hash_password(schema.password)
-        user = User(**schema.model_dump(), password=hashed_password)
+        schema.password = hashed_password
+        user = User(**schema.model_dump())
 
         db.add(user)
         db.commit()
-        db.refresh(user)
 
         access_token = self.generate_access_token(db=db, user=user)
-        response = {"access_token": access_token, "user": jsonable_encoder(user)}
+
+        db.refresh(user)
+
+        response = {
+            "access_token": access_token["token"],
+            "expiry_time": access_token["expiry_time"],
+            "user": UserResponseSchema(**jsonable_encoder(user)),
+        }
 
         return response
 
