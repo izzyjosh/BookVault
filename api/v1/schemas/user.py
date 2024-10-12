@@ -14,14 +14,14 @@ class UserResponseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
-    username: str = Field(example="adstra")
+    username: str = Field(..., example="adstra")
     email: EmailStr
-    first_name: str | None = Field(example="Joshua")
-    last_name: str | None = Field(example="Joseph")
+    first_name: str | None = Field(default=None, example="Joshua")
+    last_name: str | None = Field(default=None, example="Joseph")
     bio: str | None = None
-    reg_number: str | None = Field(example="U22AE1077")
+    reg_number: str | None = Field(default=None, example="U22AE1077")
     role: str = Field(example="member")
-    last_login: datetime
+    last_login: datetime | None = None
     is_active: bool
-    create_at: datetime
+    created_at: datetime
     updated_at: datetime

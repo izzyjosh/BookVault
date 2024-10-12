@@ -7,6 +7,8 @@ from datetime import datetime
 
 class AccessToken(AbstractBaseModel):
 
+    __tablename__ = "access_token"
+
     user_id: Mapped[UUID4] = mapped_column(ForeignKey("user.id"))
     user = relationship("User", backref="access_token")
     token: Mapped[str] = mapped_column(String(2048))

@@ -4,9 +4,10 @@ import uuid
 from sqlalchemy.dialects.postgresql import UUID
 from pydantic import UUID4
 from datetime import datetime
+from api.v1.utils.database import Base
 
 
-class AbstractBaseModel:
+class AbstractBaseModel(Base):
     __abstract__ = True
 
     id: Mapped[UUID4] = mapped_column(
