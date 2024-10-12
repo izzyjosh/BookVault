@@ -10,6 +10,7 @@ from starlette.exceptions import HTTPException as StarletteHttpException
 from api.v1.utils.database import Base, engine
 from api.v1.responses.success_responses import success_response
 from api.v1.responses.error_responses import ValidationErrorResponse, ErrorResponse
+from api.v1.routes import version_one
 
 load_dotenv()
 
@@ -33,6 +34,8 @@ app = FastAPI(
     redoc_url=None,
     docs_url="/docs",
 )
+
+app.include_router(version_one)
 
 # Setting up cors and middleware
 origins = ["*"]
