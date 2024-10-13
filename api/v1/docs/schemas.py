@@ -4,6 +4,7 @@ from typing import Optional
 from api.v1.schemas.user import UserResponseSchema
 
 
+# Schema Response
 class CreateResponseModel(BaseModel):
     access_token: str
     expiry_time: datetime
@@ -11,26 +12,45 @@ class CreateResponseModel(BaseModel):
 
 
 class SuccessResponseSchema(BaseModel):
-    status_code: int = 201
+    status_code: int
     message: str
     data: Optional[CreateResponseModel]
 
 
-responses = {
-    400: {
-        "description": "Bad Request",
-        "content": {"application/json": {"example": {"detail": "string"}}},
-    },
-    422: {
-        "description": "Validation Error",
-        "content": {
-            "application/json": {
-                "example": {
-                    "status_code": 422,
-                    "message": "Validation errors",
-                    "errors": [{"field_name": "field error message"}],
-                }
+# Respinse documentatikn
+
+bad_request = {
+    "description": "Bad Request",
+    "content": {"application/json": {"example": {"detail": "string"}}},
+}
+
+validation_error = {
+    "description": "Validation Error",
+    "content": {
+        "application/json": {
+            "example": {
+                "status_code": "int",
+                "message": "Validation errors",
+                "errors": [{"field_name": "field error message"}],
             }
-        },
+        }
     },
+}
+
+not_found = {
+    "description": "Not Found",
+    "content": {"application/json": {"example": {"detail": "string"}}},
+}
+
+
+# Responses
+register_responses = {
+    400: bad_request,
+    422: validation_error,
+}
+
+login_responses = {
+    400: bad_request,
+    404: not_found,
+    422: validation_error,
 }

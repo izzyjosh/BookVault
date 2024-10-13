@@ -3,6 +3,7 @@ from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
+from pydantic import EmailStr
 from datetime import datetime, timezone, timedelta
 import jwt
 from passlib.context import CryptContext
@@ -90,6 +91,43 @@ class UserService:
         response = {
             "access_token": access_token["token"],
             "expiry_time": access_token["expiry_time"],
+            "user": UserResponseSchema(**jsonable_encoder(user)),
+        }
+
+        return response
+
+    def handle_login(self, db: Session, email: EmailStr, password: str):
+
+        user = db.query(User).filter(User.email == email).first()
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist"
+            )
+
+        # Verify password
+
+        verify_password = self.verify_password(password, user.password)
+
+        if not verify_password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect password"
+            )
+
+        # generate access token
+
+        access_token, expiry = self.generate_access_token(db, user).values()
+
+        # update last login
+
+        user.last_login = datetime.now(timezone.utc)
+
+        db.commit()
+        db.refresh(user)
+
+        response = {
+            "access_token": access_token,
+            "expiry_time": expiry,
             "user": UserResponseSchema(**jsonable_encoder(user)),
         }
 
