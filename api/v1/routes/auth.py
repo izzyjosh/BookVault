@@ -1,10 +1,12 @@
 from fastapi import APIRouter, status, Depends
 from sqlalchemy.orm import Session
-from api.v1.schemas.user import UserCreateSchema, LoginSchema
+from api.v1.schemas.user import UserCreateSchema, LoginSchema, EmailVerificationSchema
 from api.v1.docs.schemas import (
     SuccessResponseSchema,
+    VerifyResponseSchema,
     register_responses,
     login_responses,
+    email_verify_responses,
 )
 from api.v1.models.user import User
 from api.v1.utils.dependencies import get_db
@@ -17,7 +19,7 @@ accounts = APIRouter(prefix="/account", tags=["account"])
 @accounts.post(
     "/register",
     status_code=status.HTTP_201_CREATED,
-    response_model=SuccessResponseSchema,
+    response_model=VerifyResponseSchema,
     responses=register_responses,
 )
 async def create_user(schema: UserCreateSchema, db: Session = Depends(get_db)):
@@ -57,4 +59,19 @@ async def logout(
     return success_response(
         status_code=status.HTTP_204_NO_CONTENT,
         message="User logged out successfully",
+    )
+
+
+@accounts.post(
+    "/verify_email",
+    status_code=status.HTTP_200_OK,
+    response_model=SuccessResponseSchema,
+    responses=email_verify_responses,
+)
+async def verify_email(schema: EmailVerificationSchema, db: Session = Depends(get_db)):
+
+    data = user_service.verify_otp_code(db, schema.code)
+
+    return success_response(
+        status_code=status.HTTP_200_OK, message="Email verified successfully", data=data
     )
