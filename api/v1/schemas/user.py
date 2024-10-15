@@ -32,3 +32,9 @@ class LoginSchema(BaseModel):
 
     email: EmailStr
     password: str
+
+
+class EmailVerificationSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    code: int

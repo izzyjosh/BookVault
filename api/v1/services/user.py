@@ -1,5 +1,8 @@
 import os
-from fastapi import HTTPException, status, Depends
+import smtplib
+import pyotp
+from email.mime.text import MIMEText
+from fastapi import HTTPException, status, Depends, BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
@@ -10,6 +13,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from api.v1.schemas.user import UserCreateSchema, UserResponseSchema
 from api.v1.models.user import User
+from api.v1.models.otp import Otp
 from api.v1.models.access_token import AccessToken
 from api.v1.utils.dependencies import get_db
 
@@ -23,8 +27,67 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 ALGORITHM = os.environ.get("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
+# Email env variables
+SENDER = os.environ.get("EMAIL_HOST_USER")
+PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_PORT = os.environ.get("EMAIL_PORT")
+
 
 class UserService:
+    def verify_otp_code(self, db: Session, code: int):
+        otp = db.query(Otp).filter(Otp.code == code).first()
+
+        if not otp or otp.expires_at < datetime.now(timezone.utc):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired otp code",
+            )
+        user = db.query(User).filter(User.id == otp.user_id).first()
+
+        user.is_active = True
+
+        db.commit()
+        db.refresh(user)
+
+        access_token, expiry = self.generate_access_token(db, user).values()
+
+        user.last_login = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(user)
+
+        response = {
+            "access_token": access_token,
+            "expiry_time": expiry,
+            "user": UserResponseSchema(**jsonable_encoder(user)),
+        }
+        return response
+
+    def create_otp_for_user(self, db: Session, user: User):
+        otp = Otp(user_id=user.id)
+        otp.generate_otp()
+
+        db.add(otp)
+        db.commit()
+        db.refresh(otp)
+
+        return otp.code
+
+    def send_mail(self, receiver: str, code: int):
+        msg = MIMEText(f"Use this otp code to verify your email account {code}")
+        msg["Subject"] = "Email Verification"
+        msg["From"] = SENDER
+        msg["To"] = receiver
+
+        try:
+            with smtplib.SMTP(str(EMAIL_HOST), EMAIL_PORT, timeout=60) as server:
+                server.starttls()
+                server.login(SENDER, PASSWORD)
+                server.sendmail(SENDER, receiver, msg.as_string())
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail=f"Error sending email: {str(e)}"
+            )
 
     def get_user_by_email(self, db: Session, email: str) -> User:
         user = db.query(User).filter(User.email == email).first()
@@ -75,30 +138,46 @@ class UserService:
 
         return False
 
-    def create_user(self, db: Session, schema: UserCreateSchema):
+    def create_user(
+        self,
+        db: Session,
+        schema: UserCreateSchema,
+        background_tasks: BackgroundTasks = BackgroundTasks(),
+    ):
 
-        user_exist = self.user_exist(
-            db=db, email=schema.email, username=schema.username
-        )
+        try:
 
-        # Password hashing
+            user_exist = self.user_exist(
+                db=db, email=schema.email, username=schema.username
+            )
 
-        hashed_password = self.hash_password(schema.password)
-        schema.password = hashed_password
-        user = User(**schema.model_dump())
+            # Password hashing
 
-        db.add(user)
-        db.commit()
+            hashed_password = self.hash_password(schema.password)
+            schema.password = hashed_password
+            user = User(**schema.model_dump())
 
-        access_token = self.generate_access_token(db=db, user=user)
+            db.add(user)
+            db.commit()
+            db.refresh(user)
 
-        db.refresh(user)
+            try:
+                # Send mail
+                otp = self.create_otp_for_user(db, user)
+                background_tasks.add_task(self.send_mail, user.email, otp)
 
-        response = {
-            "access_token": access_token["token"],
-            "expiry_time": access_token["expiry_time"],
-            "user": UserResponseSchema(**jsonable_encoder(user)),
-        }
+            except Exception as email_error:
+                db.rollback()
+                raise email_error
+
+            response = {
+                "user": UserResponseSchema(**jsonable_encoder(user)),
+            }
+
+        except Exception as e:
+            # If there's any other error, rollback and raise error
+            db.rollback()
+            raise e
 
         return response
 

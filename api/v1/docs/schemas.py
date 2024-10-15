@@ -17,6 +17,12 @@ class SuccessResponseSchema(BaseModel):
     data: Optional[CreateResponseModel]
 
 
+class VerifyResponseSchema(BaseModel):
+    status_code: int = 200
+    message: str
+    data: UserResponseSchema
+
+
 # Respinse documentatikn
 
 bad_request = {
@@ -58,5 +64,9 @@ register_responses = {
 login_responses = {
     400: bad_request,
     404: not_found,
+    422: validation_error,
+}
+email_verify_responses = {
+    400: bad_request,
     422: validation_error,
 }
