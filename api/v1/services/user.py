@@ -1,5 +1,5 @@
 import os
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from api.v1.schemas.user import UserCreateSchema, UserResponseSchema
 from api.v1.models.user import User
 from api.v1.models.access_token import AccessToken
+from api.v1.utils.dependencies import get_db
 
 load_dotenv()
 
@@ -24,6 +25,11 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 
 class UserService:
+
+    def get_user_by_email(self, db: Session, email: str) -> User:
+        user = db.query(User).filter(User.email == email).first()
+
+        return user
 
     def verify_password(self, plain_password: str, hashed_password: str):
         return hash_context.verify(plain_password, hashed_password)
@@ -114,6 +120,12 @@ class UserService:
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect password"
             )
 
+        if user.is_active == False:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Inactive user, please verify your email",
+            )
+
         # generate access token
 
         access_token, expiry = self.generate_access_token(db, user).values()
@@ -132,6 +144,55 @@ class UserService:
         }
 
         return response
+
+    def blacklist_token(self, db: Session, user: User):
+
+        access_token = (
+            db.query(AccessToken).filter(AccessToken.user_id == user.id).first()
+        )
+
+        access_token.blacklisted = True
+
+        db.commit()
+        db.refresh(access_token)
+
+    def get_current_user(
+        self, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+    ):
+
+        credential_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+            email: str = payload.get("email")
+
+            if not email:
+                raise credential_exception
+
+        except jwt.InvalidTokenError:
+            raise credential_exception
+
+        access_token = db.query(AccessToken).filter(AccessToken.token == token).first()
+
+        if access_token and access_token.blacklisted:
+            raise credential_exception
+
+        user = self.get_user_by_email(db, email)
+
+        if not user:
+            raise credential_exception
+
+        if user.is_active == False:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive User"
+            )
+
+        return user
 
 
 user_service = UserService()

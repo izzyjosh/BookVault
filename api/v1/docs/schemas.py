@@ -21,7 +21,9 @@ class SuccessResponseSchema(BaseModel):
 
 bad_request = {
     "description": "Bad Request",
-    "content": {"application/json": {"example": {"detail": "string"}}},
+    "content": {
+        "application/json": {"example": {"status_code": 400, "message": "bad request"}}
+    },
 }
 
 validation_error = {
@@ -29,7 +31,7 @@ validation_error = {
     "content": {
         "application/json": {
             "example": {
-                "status_code": "int",
+                "status_code": 422,
                 "message": "Validation errors",
                 "errors": [{"field_name": "field error message"}],
             }
@@ -39,7 +41,11 @@ validation_error = {
 
 not_found = {
     "description": "Not Found",
-    "content": {"application/json": {"example": {"detail": "string"}}},
+    "content": {
+        "application/json": {
+            "example": {"status_code": 404, "message": "does not exist"}
+        }
+    },
 }
 
 
