@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from datetime import datetime
+from typing import Optional
 
 
 class UserCreateSchema(BaseModel):
@@ -38,3 +39,13 @@ class EmailVerificationSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     code: int
+
+
+class UserUpdateSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    username: Optional[str]
+    first_name: Optional[str]
+    last_name: Optional[str]
+    reg_number: Optional[str]
+    bio: Optional[str]
