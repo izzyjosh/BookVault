@@ -1,6 +1,8 @@
 import os
 import smtplib
 import pyotp
+from typing import Annotated
+from pydantic import UUID4
 from email.mime.text import MIMEText
 from fastapi import HTTPException, status, Depends, BackgroundTasks
 from fastapi.encoders import jsonable_encoder
@@ -11,7 +13,7 @@ from datetime import datetime, timezone, timedelta
 import jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from api.v1.schemas.user import UserCreateSchema, UserResponseSchema
+from api.v1.schemas.user import UserCreateSchema, UserResponseSchema, UserUpdateSchema
 from api.v1.models.user import User
 from api.v1.models.otp import Otp
 from api.v1.models.access_token import AccessToken
@@ -20,7 +22,7 @@ from api.v1.utils.dependencies import get_db
 load_dotenv()
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/account/login")
 hash_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -236,7 +238,9 @@ class UserService:
         db.refresh(access_token)
 
     def get_current_user(
-        self, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+        self,
+        token: Annotated[str, Depends(oauth2_scheme)],
+        db: Session = Depends(get_db),
     ):
 
         credential_exception = HTTPException(
@@ -272,6 +276,25 @@ class UserService:
             )
 
         return user
+
+    # User management functions
+
+    def update(self, db: Session, schema: UserUpdateSchema, user: User, user_id: UUID4):
+        schema_dict = schema.model_dump(exclude_unset=True)
+
+        if user.id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have the permission to update this profile",
+            )
+
+        for key, value in schema_dict.items():
+            setattr(user, key, value)
+
+        db.commit()
+        db.refresh(user)
+
+        return UserResponseSchema(**jsonable_encoder(user))
 
 
 user_service = UserService()

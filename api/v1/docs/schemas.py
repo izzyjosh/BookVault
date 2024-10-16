@@ -53,8 +53,22 @@ not_found = {
         }
     },
 }
-
-
+forbidden = {
+    "description": "Forbidden",
+    "content": {
+        "application/json": {
+            "example": {"status_code": 403, "message": "Do not have the permission"}
+        }
+    },
+}
+not_authorized = {
+    "description": "Unauthorized",
+    "content": {
+        "application/json": {
+            "example": {"status_code": 401, "message": "not authorized"}
+        }
+    },
+}
 # Responses
 register_responses = {
     400: bad_request,
@@ -70,3 +84,4 @@ email_verify_responses = {
     400: bad_request,
     422: validation_error,
 }
+update_responses = {403: forbidden, 422: validation_error, 401: not_authorized}
