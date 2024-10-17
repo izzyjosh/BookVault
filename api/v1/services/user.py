@@ -2,13 +2,12 @@ import os
 import smtplib
 import pyotp
 from typing import Annotated
-from pydantic import UUID4
 from email.mime.text import MIMEText
 from fastapi import HTTPException, status, Depends, BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
-from pydantic import EmailStr
+from pydantic import EmailStr, UUID4
 from datetime import datetime, timezone, timedelta
 import jwt
 from passlib.context import CryptContext
@@ -239,7 +238,7 @@ class UserService:
 
     def get_current_user(
         self,
-        token: Annotated[str, Depends(oauth2_scheme)],
+        token: str = Depends(oauth2_scheme),
         db: Session = Depends(get_db),
     ):
 
@@ -282,19 +281,36 @@ class UserService:
     def update(self, db: Session, schema: UserUpdateSchema, user: User, user_id: UUID4):
         schema_dict = schema.model_dump(exclude_unset=True)
 
-        if user.id != user_id:
+        if user.id != user_id and user.role != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have the permission to update this profile",
             )
 
         for key, value in schema_dict.items():
+            if key == "role" and user.role != "admin":
+                continue
             setattr(user, key, value)
 
         db.commit()
         db.refresh(user)
 
         return UserResponseSchema(**jsonable_encoder(user))
+
+    def delete_user(self, db: Session, user_id: UUID4, user: User):
+        if user.id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have the permission to delete this user",
+            )
+
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist"
+            )
+        db.delete(user)
+        db.commit()
 
 
 user_service = UserService()

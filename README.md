@@ -6,11 +6,11 @@ This Library Management System is designed to automate and streamline the operat
 
 ## Features
 
-- [ ] **User Management**
+- [x] **User Management**
   - [x] User Registration
   - [x] Login/Logout with Role-based Access Control (Admin, Librarian, Member)
-  - [ ] Profile Management (Update personal information, borrowing history)
-  - [ ] Role-based Access Control (RBAC)
+  - [x] Profile Management (Update personal information, borrowing history)
+  - [x] Role-based Access Control (RBAC)
 
 - [ ] **Book Management**
   - [ ] Add/Update/Delete Books

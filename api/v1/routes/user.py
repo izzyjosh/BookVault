@@ -5,7 +5,7 @@ from api.v1.services.user import user_service
 from api.v1.schemas.user import UserUpdateSchema, UserResponseSchema
 from api.v1.models.user import User
 from api.v1.utils.dependencies import get_db
-from api.v1.docs.schemas import SuccessResponseSchema, update_responses
+from api.v1.docs.schemas import SuccessResponseSchema, update_responses, delete_responses
 from api.v1.responses.success_responses import success_response
 
 users = APIRouter(prefix="/users", tags=["user"])
@@ -30,4 +30,19 @@ async def update_user(
         status_code=status.HTTP_200_OK,
         message="User Updated successfully",
         data=response,
+    )
+
+
+@users.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT, responses=delete_responses)
+async def delete_user(
+    id: UUID4,
+    user: User = Depends(user_service.get_current_user),
+    db: Session = Depends(get_db),
+):
+
+    user_service.delete_user(db, id, user)
+
+    return success_response(
+        status_code=status.HTTP_204_NO_CONTENT,
+        message="User deleted successfully",
     )
