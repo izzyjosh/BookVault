@@ -23,7 +23,13 @@ class VerifyResponseSchema(BaseModel):
     data: UserResponseSchema
 
 
-# Respinse documentatikn
+class GetUsersResponse(BaseModel):
+    status_code: int = 200
+    message: str
+    data: list[UserResponseSchema]
+
+
+# Response documentatikn
 
 bad_request = {
     "description": "Bad Request",
@@ -69,6 +75,14 @@ not_authorized = {
         }
     },
 }
+no_content = {
+        "description": "No Content",
+        "content": {
+            "application/json": {
+                "example": {"status_code": 204, "message": "No content, already deleted"}
+                }
+            }
+        }
 # Responses
 register_responses = {
     400: bad_request,
@@ -85,3 +99,13 @@ email_verify_responses = {
     422: validation_error,
 }
 update_responses = {403: forbidden, 422: validation_error, 401: not_authorized}
+
+admin_update_responses = {401: not_authorized, 403: forbidden, 422: validation_error}
+
+get_users_responses = {401: not_authorized, 403: forbidden}
+
+delete_responses = {
+        204: no_content,
+        404: not_found,
+        422: validation_error,
+        }
