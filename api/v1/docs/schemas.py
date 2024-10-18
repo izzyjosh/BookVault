@@ -76,13 +76,13 @@ not_authorized = {
     },
 }
 no_content = {
-        "description": "No Content",
-        "content": {
-            "application/json": {
-                "example": {"status_code": 204, "message": "No content, already deleted"}
-                }
-            }
+    "description": "No Content",
+    "content": {
+        "application/json": {
+            "example": {"status_code": 204, "message": "No content, already deleted"}
         }
+    },
+}
 # Responses
 register_responses = {
     400: bad_request,
@@ -105,7 +105,7 @@ admin_update_responses = {401: not_authorized, 403: forbidden, 422: validation_e
 get_users_responses = {401: not_authorized, 403: forbidden}
 
 delete_responses = {
-        204: no_content,
-        404: not_found,
-        422: validation_error,
-        }
+    204: no_content,
+    404: not_found,
+    422: validation_error,
+}

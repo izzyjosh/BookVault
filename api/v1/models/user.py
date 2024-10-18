@@ -1,6 +1,7 @@
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import String, Enum as SQLAlchemyEnum, func, Boolean, DateTime
 from api.v1.models.abstract_base_model import AbstractBaseModel
+from api.v1.models.book import BookUserAssociation
 from pydantic import EmailStr
 from enum import Enum
 from typing import Optional
@@ -31,6 +32,11 @@ class User(AbstractBaseModel):
     is_active: Mapped[bool] = mapped_column(Boolean(), default=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), server_onupdate=func.now()
+    )
+
+    # Relationships
+    queued_users: Mapped[list["Book"]] = relationship(
+        "Book", secondary=BookUserAssociation, back_populates="reservation_queue"
     )
 
     def __repr__(self) -> str:

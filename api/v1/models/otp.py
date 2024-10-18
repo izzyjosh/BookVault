@@ -1,4 +1,3 @@
-from pydantic import UUID4
 from datetime import datetime, timedelta
 import pyotp
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -10,7 +9,7 @@ class Otp(AbstractBaseModel):
     __tablename__ = "otp"
 
     code: Mapped[int] = mapped_column(Integer, unique=True, nullable=True)
-    user_id: Mapped[UUID4] = mapped_column(ForeignKey("user.id"))
+    user_id: Mapped[str] = mapped_column(ForeignKey("user.id"))
     user = relationship("User", backref="otpcode")
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
