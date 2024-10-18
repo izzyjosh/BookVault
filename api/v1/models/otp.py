@@ -10,7 +10,7 @@ class Otp(AbstractBaseModel):
 
     code: Mapped[int] = mapped_column(Integer, unique=True, nullable=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("user.id"))
-    user = relationship("User", backref="otpcode")
+    user = relationship("User", back_populates="otpcode")
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     def __str__(self):

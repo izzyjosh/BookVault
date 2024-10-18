@@ -143,7 +143,6 @@ class UserService:
         self,
         db: Session,
         schema: UserCreateSchema,
-        background_tasks: BackgroundTasks = BackgroundTasks(),
     ):
 
         try:
@@ -165,7 +164,8 @@ class UserService:
             try:
                 # Send mail
                 otp = self.create_otp_for_user(db, user)
-                background_tasks.add_task(self.send_mail, user.email, otp)
+                self.send_mail(user.email, otp)
+                print("email sent")
 
             except Exception as email_error:
                 db.rollback()

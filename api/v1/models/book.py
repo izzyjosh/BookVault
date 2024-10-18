@@ -29,14 +29,13 @@ class Book(AbstractBaseModel):
     publisher: Mapped[str] = mapped_column(String(100))
     image: Mapped[str] = mapped_column(String(1024))
     year: Mapped[int]
-    genre: Mapped[str]
     isbn: Mapped[str] = mapped_column(String, unique=True)
     category_id: Mapped[str] = mapped_column(ForeignKey("category.id"))
     category = relationship("Category", back_populates="books")
-    genre: Mapped[list["Genre"]] = relationship(
+    genre: Mapped[list[str]] = relationship(
         "Genre", secondary=BookGenreAssociation, back_populates="books"
     )
-    copies_available: Mapped[int] = mapped_column(default=0)
+    copies_available: Mapped[int] = mapped_column(default=0, nullable=False)
     total_copies: Mapped[int] = mapped_column(default=0)
     borrowers: Mapped[list[dict]] = mapped_column(
         MutableList.as_mutable(ARRAY(JSON)), nullable=True
@@ -54,6 +53,10 @@ class Book(AbstractBaseModel):
     # Model methods
 
     def update_copies(self, num_copies: int):
+        if self.copies_available is None:
+            self.copies_available = 0
+        if self.total_copies is None:
+            self.total_copies = 0
         self.copies_available += num_copies
         self.total_copies += num_copies
 
