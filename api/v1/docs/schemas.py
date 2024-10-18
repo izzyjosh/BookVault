@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
 from api.v1.schemas.user import UserResponseSchema
+from api.v1.schemas.book import BookResponseSchema
 
 
 # Schema Response
@@ -21,6 +22,12 @@ class VerifyResponseSchema(BaseModel):
     status_code: int = 200
     message: str
     data: UserResponseSchema
+
+
+class AddBookResponseSchema(BaseModel):
+    status_code: int = 201
+    message: str
+    data: BookResponseSchema
 
 
 class GetUsersResponse(BaseModel):
@@ -109,3 +116,6 @@ delete_responses = {
     404: not_found,
     422: validation_error,
 }
+
+# book docs
+add_book_responses = {401: not_authorized, 403: forbidden, 422: validation_error}

@@ -11,4 +11,4 @@ class Genre(AbstractBaseModel):
     books = relationship("Book", secondary=BookGenreAssociation, back_populates="genre")
 
     def __str__(self):
-        return self.name
+        return f"{self.name}"
