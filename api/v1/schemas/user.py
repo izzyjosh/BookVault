@@ -49,3 +49,10 @@ class UserUpdateSchema(BaseModel):
     last_name: Optional[str]
     reg_number: Optional[str]
     bio: Optional[str]
+
+
+class BookUserSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    username: str
