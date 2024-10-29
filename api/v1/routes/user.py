@@ -37,9 +37,7 @@ async def update_user(
     )
 
 
-@users.delete(
-    "/{id}", status_code=status.HTTP_204_NO_CONTENT, responses=delete_responses
-)
+@users.delete("/{id}", status_code=status.HTTP_200_OK, responses=delete_responses)
 async def delete_user(
     id: UUID4,
     user: User = Depends(user_service.get_current_user),
@@ -49,6 +47,6 @@ async def delete_user(
     user_service.delete_user(db, id, user)
 
     return success_response(
-        status_code=status.HTTP_204_NO_CONTENT,
+        status_code=status.HTTP_200_OK,
         message="User deleted successfully",
     )

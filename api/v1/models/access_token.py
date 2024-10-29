@@ -8,8 +8,8 @@ class AccessToken(AbstractBaseModel):
 
     __tablename__ = "access_token"
 
-    user_id: Mapped[str] = mapped_column(ForeignKey("user.id"))
-    user = relationship("User", backref="access_token")
+    user_id: Mapped[str] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+    user = relationship("User", back_populates="access_token")
     token: Mapped[str] = mapped_column(String(2048))
     expiry_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
@@ -20,3 +20,6 @@ class AccessToken(AbstractBaseModel):
 
     def __repr__(self) -> str:
         return self.token
+
+    def is_expired(self) -> bool:
+        return datetime.utcnow() > self.expiry_time

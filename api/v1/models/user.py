@@ -36,10 +36,16 @@ class User(AbstractBaseModel):
 
     # Relationships
     queued_users: Mapped[list["Book"]] = relationship(
-        "Book", secondary=BookUserAssociation, back_populates="reservation_queue"
+        "Book",
+        secondary=BookUserAssociation,
+        back_populates="reservation_queue",
+        cascade="save-update, merge",
     )
     otpcode: Mapped[int] = relationship(
-        "Otp", back_populates="user", cascade="all, delete"
+        "Otp", back_populates="user", cascade="all, delete-orphan", uselist=False
+    )
+    access_token: Mapped[str] = relationship(
+        "AccessToken", back_populates="user", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
