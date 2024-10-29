@@ -49,7 +49,7 @@ async def login(data: LoginSchema, db: Session = Depends(get_db)):
     )
 
 
-@accounts.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+@accounts.post("/logout")
 async def logout(
     user: User = Depends(user_service.get_current_user), db: Session = Depends(get_db)
 ):
@@ -57,7 +57,6 @@ async def logout(
     user_service.blacklist_token(db, user)
 
     return success_response(
-        status_code=status.HTTP_204_NO_CONTENT,
         message="User logged out successfully",
     )
 

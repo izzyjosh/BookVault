@@ -11,6 +11,7 @@ from pydantic import EmailStr, UUID4
 from datetime import datetime, timezone, timedelta
 import jwt
 from passlib.context import CryptContext
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from api.v1.schemas.user import UserCreateSchema, UserResponseSchema, UserUpdateSchema
 from api.v1.models.user import User
@@ -206,9 +207,20 @@ class UserService:
                 detail="Inactive user, please verify your email",
             )
 
-        # generate access token
+        # check if user has access token
+        user_access_token = (
+            db.query(AccessToken)
+            .filter(AccessToken.user_id == user.id)
+            .order_by(desc(AccessToken.created_at))
+            .first()
+        )
 
-        access_token, expiry = self.generate_access_token(db, user).values()
+        if user_access_token.is_expired or user_access_token.blacklisted:
+            # generate access token
+            access_token, expiry = self.generate_access_token(db, user).values()
+        else:
+            access_token = user_access_token.token
+            expiry = user_access_token.expiry_time
 
         # update last login
 
@@ -278,10 +290,10 @@ class UserService:
 
     # User management functions
 
-    def update(self, db: Session, schema: UserUpdateSchema, user: User, user_id: UUID4):
+    def update(self, db: Session, schema: UserUpdateSchema, user: User, user_id: str):
         schema_dict = schema.model_dump(exclude_unset=True)
 
-        if user.id != user_id and user.role != "admin":
+        if user.id != str(user_id) and user.role != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have the permission to update this profile",
@@ -297,14 +309,14 @@ class UserService:
 
         return UserResponseSchema(**jsonable_encoder(user))
 
-    def delete_user(self, db: Session, user_id: UUID4, user: User):
-        if user.id != user_id:
+    def delete_user(self, db: Session, user_id: str, user: User):
+        if user.id != str(user_id):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You don't have the permission to delete this user",
             )
 
-        user = db.query(User).filter(User.id == user_id).first()
+        user = db.query(User).filter(User.id == str(user_id)).first()
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist"

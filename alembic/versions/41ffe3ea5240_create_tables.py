@@ -1,8 +1,8 @@
-"""initial migration
+"""create tables
 
-Revision ID: 0098f8cac101
+Revision ID: 41ffe3ea5240
 Revises: 
-Create Date: 2024-10-18 11:05:21.824313
+Create Date: 2024-10-29 14:45:09.482481
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "0098f8cac101"
+revision: str = "41ffe3ea5240"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -94,18 +94,15 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.ForeignKeyConstraint(
-            ["user_id"],
-            ["user.id"],
-        ),
+        sa.ForeignKeyConstraint(["user_id"], ["user.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_access_token_id"), "access_token", ["id"], unique=False)
     op.create_table(
         "book",
         sa.Column("title", sa.String(length=100), nullable=False),
-        sa.Column("author", sa.String(length=50), nullable=False),
-        sa.Column("publisher", sa.String(length=100), nullable=False),
+        sa.Column("authors", sa.ARRAY(sa.String(length=50)), nullable=False),
+        sa.Column("publishers", sa.ARRAY(sa.String(length=100)), nullable=False),
         sa.Column("image", sa.String(length=1024), nullable=False),
         sa.Column("year", sa.Integer(), nullable=False),
         sa.Column("isbn", sa.String(), nullable=False),
@@ -155,28 +152,16 @@ def upgrade() -> None:
         "bookUserAssociation",
         sa.Column("user_id", sa.String(), nullable=False),
         sa.Column("book_id", sa.String(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["book_id"],
-            ["book.id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["user_id"],
-            ["user.id"],
-        ),
+        sa.ForeignKeyConstraint(["book_id"], ["book.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["user_id"], ["user.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("user_id", "book_id"),
     )
     op.create_table(
         "genreAssociation",
         sa.Column("genre_id", sa.String(), nullable=False),
         sa.Column("book_id", sa.String(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["book_id"],
-            ["book.id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["genre_id"],
-            ["genre.id"],
-        ),
+        sa.ForeignKeyConstraint(["book_id"], ["book.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["genre_id"], ["genre.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("genre_id", "book_id"),
     )
     # ### end Alembic commands ###

@@ -9,15 +9,23 @@ from datetime import datetime, timedelta
 BookGenreAssociation = Table(
     "genreAssociation",
     Base.metadata,
-    Column("genre_id", String, ForeignKey("genre.id"), primary_key=True),
-    Column("book_id", String, ForeignKey("book.id"), primary_key=True),
+    Column(
+        "genre_id", String, ForeignKey("genre.id", ondelete="CASCADE"), primary_key=True
+    ),
+    Column(
+        "book_id", String, ForeignKey("book.id", ondelete="CASCADE"), primary_key=True
+    ),
 )
 
 BookUserAssociation = Table(
     "bookUserAssociation",
     Base.metadata,
-    Column("user_id", String, ForeignKey("user.id"), primary_key=True),
-    Column("book_id", String, ForeignKey("book.id"), primary_key=True),
+    Column(
+        "user_id", String, ForeignKey("user.id", ondelete="CASCADE"), primary_key=True
+    ),
+    Column(
+        "book_id", String, ForeignKey("book.id", ondelete="CASCADE"), primary_key=True
+    ),
 )
 
 
@@ -25,15 +33,22 @@ class Book(AbstractBaseModel):
     __tablename__ = "book"
 
     title: Mapped[str] = mapped_column(String(100), unique=True, index=True)
-    author: Mapped[str] = mapped_column(String(50))
-    publisher: Mapped[str] = mapped_column(String(100))
+    authors: Mapped[list[str]] = mapped_column(
+        MutableList.as_mutable(ARRAY(String(50)))
+    )
+    publishers: Mapped[list[str]] = mapped_column(
+        MutableList.as_mutable(ARRAY(String(100)))
+    )
     image: Mapped[str] = mapped_column(String(1024))
     year: Mapped[int]
     isbn: Mapped[str] = mapped_column(String, unique=True)
     category_id: Mapped[str] = mapped_column(ForeignKey("category.id"))
     category = relationship("Category", back_populates="books")
     genre: Mapped[list[str]] = relationship(
-        "Genre", secondary=BookGenreAssociation, back_populates="books"
+        "Genre",
+        secondary=BookGenreAssociation,
+        back_populates="books",
+        cascade="save-update, merge",
     )
     copies_available: Mapped[int] = mapped_column(default=0, nullable=False)
     total_copies: Mapped[int] = mapped_column(default=0)
