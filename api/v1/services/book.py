@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import text, any_
 from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from api.v1.schemas.book import AddBookSchema, BookResponseSchema, UpdateBookSchema
@@ -7,6 +8,7 @@ from api.v1.models.user import User
 from api.v1.models.genre import Genre
 from api.v1.models.category import Category
 from api.v1.utils.storage import upload
+from api.v1.utils.paginate import paginate_query
 
 
 class BookService:
@@ -127,11 +129,68 @@ class BookService:
         db.commit()
         db.refresh(book)
 
-        return BookResponseSchema(
-            **jsonable_encoder(book),
-            category=category.name,
-            genre=[genre.name for genre in book.genre]
+        return BookResponseSchema.book_payload(book)
+
+    def remove(self, db: Session, book_id: str, user: User):
+        if user.role != "admin":
+            raise HTTPExcpetion(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to delete a book",
+            )
+
+        book = db.query(Book).filter(Book.id == book_id).first()
+
+        if not book:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="book does not exust"
+            )
+
+        db.delete(book)
+        db.commit()
+
+    def fetch_all(
+        self, db: Session, search: str = "", category: str = "", page: int = 1
+    ):
+        query = db.query(Book).options(
+            joinedload(Book.genre), joinedload(Book.category)
         )
+
+        if search != "":
+            query = query.filter(
+                Book.authors.any(str(search)) 
+                | Book.title.icontains(search)
+                | Book.isbn.icontains(search)
+            )
+
+        if category != "":
+            category = db.query(Category).filter(Category.name == category).first()
+            query = query.filter(Book.category == category)
+
+        response = paginate_query(db, query, page)
+
+        data = [
+            BookResponseSchema.book_payload(book) for book in response.get("results")
+        ]
+
+        response["results"] = data
+
+        return response
+
+    def fetch_one(self, db: Session, book_id: str):
+        book = (
+            db.query(Book)
+            .filter(Book.id == book_id)
+            .options(joinedload(Book.genre), joinedload(Book.category))
+            .first()
+        )
+
+        if not book:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Book does not exist"
+            )
+
+        response = BookResponseSchema.book_payload(book)
+        return response
 
 
 book_service = BookService()
