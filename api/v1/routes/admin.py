@@ -5,6 +5,7 @@ from api.v1.utils.dependencies import get_db
 from api.v1.models.user import User
 from api.v1.services.user import user_service
 from api.v1.services.admin import admin_service
+from api.v1.services.book import book_service
 from api.v1.schemas.admin import AdminUpdateSchema
 from api.v1.responses.success_responses import success_response
 from api.v1.docs.schemas import (
@@ -44,7 +45,7 @@ async def get_users(
     responses=admin_update_responses,
 )
 async def update_user_role(
-    id: UUID4,
+    id: str,
     schema: AdminUpdateSchema,
     db: Session = Depends(get_db),
     user: User = Depends(admin_service.update_role),
@@ -55,3 +56,16 @@ async def update_user_role(
     return success_response(
         status_code=status.HTTP_200_OK, message="Updated successfully", data=response
     )
+
+
+# Admin remove book
+@admin.delete("/{id}}", summary="Admin delete book")
+async def delete_book(
+    id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(admin_service.update_role),
+):
+
+    book_service.remove(db, id, user)
+
+    return success_response(message="Book remove siccessfully")

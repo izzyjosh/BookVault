@@ -13,10 +13,10 @@ This Library Management System is designed to automate and streamline the operat
   - [x] Role-based Access Control (RBAC)
 
 - [ ] **Book Management**
-  - [ ] Add/Update/Delete Books
-  - [ ] Book Search (Title, Author, Genre, ISBN)
-  - [ ] Book Details (Author, Publisher, Year, Genre)
-  - [ ] Category Management (Organize books by category)
+  - [x] Add/Update/Delete Books
+  - [x] Book Search (Title, Author, Genre, ISBN)
+  - [x] Book Details (Author, Publisher, Year, Genre)
+  - [x] Category Management (Organize books by category)
   - [ ] ISBN Validation
 
 - [ ] **Inventory and Catalog Management**

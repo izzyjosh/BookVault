@@ -16,6 +16,7 @@ class AdminService:
             )
         return UserResponseSchema(**jsonable_encoder(user))
 
+    # upgrade user to another role
     def update_role(
         self,
         user: User = Depends(user_service.get_current_user),
@@ -23,6 +24,7 @@ class AdminService:
         response = self.check_user_role(user, "admin")
         return response
 
+    # fetch all users
     def fetch_users(self, db: Session):
         users = db.query(User).all()
 

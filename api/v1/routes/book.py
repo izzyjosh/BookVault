@@ -32,6 +32,34 @@ async def add_book(
         data=response,
     )
 
+@books.get("")
+async def get_books(
+        page: int = 1,
+        search: str = "",
+        category: str = "",
+        db: Session = Depends(get_db),
+        user: User = Depends(user_service.get_current_user)):
+
+    response = book_service.fetch_all(db, search, category, page)
+
+    return success_response(
+            status_code=status.HTTP_200_OK,
+            message="books successfully returned",
+            data=response)
+
+@books.get("/{id}")
+async def get_book(
+        id: str,
+        db: Session = Depends(get_db),
+        user: User = Depends(user_service.get_current_user),):
+
+    response = book_service.fetch_one(db, id)
+
+    return success_response(
+            status_code=status.HTTP_200_OK,
+            message="Book successfully returbed",
+            data=response)
+
 
 @books.put(
     "/{id}",
